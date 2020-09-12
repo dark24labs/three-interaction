@@ -736,6 +736,8 @@ var InteractionManager = function (_EventDispatcher) {
      * @member {Camera}
      */
     _this.camera = camera;
+    
+    _this.timestamp = 0;
 
     /**
      * Should default browser actions automatically be prevented.
@@ -1727,23 +1729,30 @@ var InteractionManager = function (_EventDispatcher) {
   }, {
     key: 'onClick',
     value: function onClick(originalEvent) {
-      if (originalEvent.type !== 'click') return;
+      if (!this.camera.active) return;
+      
+      if ( (Date.now()-200)<=this.timestamp ) {
+        
+        if (originalEvent.type !== 'click') return;
 
-      var events = this.normalizeToPointerData(originalEvent);
+        var events = this.normalizeToPointerData(originalEvent);
 
-      if (this.autoPreventDefault && events[0].isNormalized) {
-        originalEvent.preventDefault();
+        if (this.autoPreventDefault && events[0].isNormalized) {
+          originalEvent.preventDefault();
+        }
+
+        var interactionData = this.getInteractionDataForPointerId(events[0]);
+
+        var interactionEvent = this.configureInteractionEventForDOMEvent(this.eventData, events[0], interactionData);
+
+        interactionEvent.data.originalEvent = originalEvent;
+
+        this.processInteractive(interactionEvent, this.scene, this.processClick, true);
+
+        this.emit('click', interactionEvent);
       }
-
-      var interactionData = this.getInteractionDataForPointerId(events[0]);
-
-      var interactionEvent = this.configureInteractionEventForDOMEvent(this.eventData, events[0], interactionData);
-
-      interactionEvent.data.originalEvent = originalEvent;
-
-      this.processInteractive(interactionEvent, this.scene, this.processClick, true);
-
-      this.emit('click', interactionEvent);
+      
+      this.timestamp = Date.now();
     }
 
     /**
@@ -1773,6 +1782,10 @@ var InteractionManager = function (_EventDispatcher) {
   }, {
     key: 'onPointerDown',
     value: function onPointerDown(originalEvent) {
+      if (!this.camera.active) return;
+      
+      this.timestamp = Date.now();
+      
       // if we support touch events, then only use those for touch events, not pointer events
       if (this.supportsTouchEvents && originalEvent.pointerType === 'touch') return;
 
@@ -1948,6 +1961,8 @@ var InteractionManager = function (_EventDispatcher) {
   }, {
     key: 'onPointerUp',
     value: function onPointerUp(event) {
+      if (!this.camera.active) return;
+      
       // if we support touch events, then only use those for touch events, not pointer events
       if (this.supportsTouchEvents && event.pointerType === 'touch') return;
 
@@ -3540,6 +3555,8 @@ var InteractionLayer = function (_EventDispatcher) {
   }, {
     key: 'onClick',
     value: function onClick(originalEvent) {
+      if (!this.camera.active) return;
+      
       if (!this.isAble()) return;
       if (originalEvent.type !== 'click') return;
 
@@ -3587,6 +3604,10 @@ var InteractionLayer = function (_EventDispatcher) {
   }, {
     key: 'onPointerDown',
     value: function onPointerDown(originalEvent) {
+      if (!this.camera.active) return;
+      
+      this.timestamp = Date.now();
+      
       if (!this.isAble()) return;
       // if we support touch events, then only use those for touch events, not pointer events
       if (this.supportsTouchEvents && originalEvent.pointerType === 'touch') return;
@@ -3764,6 +3785,8 @@ var InteractionLayer = function (_EventDispatcher) {
   }, {
     key: 'onPointerUp',
     value: function onPointerUp(event) {
+      if (!this.camera.active) return;
+      
       if (!this.isAble()) return;
       // if we support touch events, then only use those for touch events, not pointer events
       if (this.supportsTouchEvents && event.pointerType === 'touch') return;
