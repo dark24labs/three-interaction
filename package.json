@@ -1,8 +1,5 @@
 {
 	"name": "three-interaction",
-	"peerDependencies": {
-		"three": "^0.89.0"
-	},
 	"main": "build/three-interaction.js",
 	"files": [
 		"build/three-interaction.js"
